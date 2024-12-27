@@ -1,0 +1,5 @@
+@media (max-width: 767px) {
+  .hidden-search {
+    display: none; /* Hide on devices smaller than md (768px) */
+  }
+}
