@@ -17,7 +17,7 @@ const Footer = () => {
           className="py-6 space-y-4 sm:space-y-0"
         >
           {/* Footer Logo or Title */}
-          <Text className="text-lg font-medium">Blog Post</Text>
+          <Text className="text-lg font-medium text-white">Blog Post</Text>
 
           {/* Navigation Links */}
           <Flex

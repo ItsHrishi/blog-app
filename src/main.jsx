@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import Layout from "./Layout.jsx";
@@ -11,13 +10,24 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import Home from "./components/layout/Home.jsx";
+import AuthLayout from "./AuthLayout.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import SignupPage from "./pages/SignupPage.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Layout />}>
-      <Route path="" element={<Home />} />
-      <Route path="/post" element="" />
-    </Route>
+    <>
+      <Route path="/" element={<Layout />}>
+        <Route path="" element={<Home />} />
+        <Route path="/post" element="" />
+      </Route>
+      <Route>
+        <Route path="/auth" element={<AuthLayout />}>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="signup" element={<SignupPage />} />
+        </Route>
+      </Route>
+    </>
   )
 );
 

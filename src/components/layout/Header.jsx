@@ -60,28 +60,32 @@ const Header = ({ handleThemeChange, theme }) => {
           >
             {theme === "light" ? <MoonIcon /> : <SunIcon />}
           </IconButton>
-          <Button
-            size={{
-              initial: "2",
-              md: "3",
-            }}
-            highContrast
-            variant="outline"
-            radius="full"
-          >
-            Login
-          </Button>
-          <Button
-            size={{
-              initial: "2",
-              md: "3",
-            }}
-            highContrast
-            variant="solid"
-            radius="full"
-          >
-            Signup
-          </Button>
+          <Link to="/auth/login">
+            <Button
+              size={{
+                initial: "2",
+                md: "3",
+              }}
+              highContrast
+              variant="outline"
+              radius="large"
+            >
+              Login
+            </Button>
+          </Link>
+          <Link to="/auth/signup">
+            <Button
+              size={{
+                initial: "2",
+                md: "3",
+              }}
+              highContrast
+              variant="solid"
+              radius="large"
+            >
+              Signup
+            </Button>
+          </Link>
         </Flex>
       </Flex>
     </Container>
