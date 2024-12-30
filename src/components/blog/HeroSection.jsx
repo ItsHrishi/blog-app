@@ -13,7 +13,7 @@ import { CalendarIcon, ClockIcon } from "@radix-ui/react-icons";
 
 const HeroSection = () => {
   return (
-    <Container>
+    <Container className="mb-6">
       <Box className="relative overflow-hidden">
         <AspectRatio ratio={16 / 9}>
           <div

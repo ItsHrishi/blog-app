@@ -38,18 +38,21 @@ const BlogPostCard = () => {
                 fallback={author.name[0]}
                 radius="full"
               />
-              <div className="flex items-center text-xs sm:text-sm">
-                <span className="font-medium text-gray-900 dark:text-gray-100">
-                  {author.name}
+              <div className="flex flex-col sm:flex-row items-center text-xs sm:text-sm">
+                <span className="font-medium">{author.name}</span>
+                <span className=" hidden sm:block mx-1 sm:mx-2 text-gray-500">
+                  ·
                 </span>
-                <span className="mx-1 sm:mx-2 text-gray-500">·</span>
                 <span className="text-gray-500">{publishDate}</span>
               </div>
             </div>
-            <Text className="text-lg font-bold mb-1 text-gray-900 dark:text-gray-100 sm:text-xl md:text-2xl lg:text-2xl line-clamp-2">
+            <Text className="text-lg font-bold mb-1 sm:text-md md:text-xl line-clamp-2">
               {title}
             </Text>
-            <Text className="text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
+            <Text
+              color="gray"
+              className="text-xs sm:text-base line-clamp-2 mb-2"
+            >
               {excerpt}
             </Text>
             <div className="flex items-center gap-3 text-xs sm:text-sm md:text-base">
@@ -78,6 +81,7 @@ const BlogPostCard = () => {
         </div>
       ) : (
         // Layout for posts without image
+        // TODO: formatting the without image fromat
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             {title}

@@ -13,13 +13,14 @@ import Home from "./components/layout/Home.jsx";
 import AuthLayout from "./AuthLayout.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
+import PostPage from "./pages/PostPage.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/" element={<Layout />}>
         <Route path="" element={<Home />} />
-        <Route path="/post" element="" />
+        <Route path="/post" element={<PostPage />} />
       </Route>
       <Route>
         <Route path="/auth" element={<AuthLayout />}>
