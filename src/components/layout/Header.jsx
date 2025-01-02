@@ -19,7 +19,7 @@ import "./layoutStyles.css";
 import { useSelector } from "react-redux";
 import LogoutButton from "../common/LogoutButton";
 
-export default Header = ({ handleThemeChange, theme }) => {
+const Header = ({ handleThemeChange, theme }) => {
   const authStatus = useSelector((state) => state.auth.status);
   const userData = useSelector((state) => state.auth.userData);
   const navigate = useNavigate();
@@ -131,3 +131,4 @@ export default Header = ({ handleThemeChange, theme }) => {
     </Container>
   );
 };
+export default Header;
