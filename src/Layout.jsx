@@ -1,5 +1,3 @@
-import Header from "./components/layout/Header.jsx";
-import Footer from "./components/layout/Footer.jsx";
 import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { Outlet } from "react-router-dom";
@@ -9,6 +7,8 @@ import { useEffect, useState } from "react";
 import authService from "./appwrite/auth";
 import { login, logout } from "./store/features/authSlice";
 import FullPageLoading from "./components/common/FullPageLoading";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
 
 function Layout() {
   const [loading, setLoading] = useState(true);
