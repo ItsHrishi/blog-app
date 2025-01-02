@@ -11,7 +11,7 @@ import {
 } from "@radix-ui/themes";
 import { CalendarIcon, ClockIcon } from "@radix-ui/react-icons";
 
-const HeroSection = () => {
+const HeroSection = ({ id }) => {
   return (
     <Container className="mb-6">
       <Box className="relative overflow-hidden">

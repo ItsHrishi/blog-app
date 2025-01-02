@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   Flex,
@@ -9,11 +9,12 @@ import {
   Switch,
   Select,
 } from "@radix-ui/themes";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import RichTextEditor from "../RichTextEditor/RichTextEditor";
-import authService from "../../appwrite/config";
+import appwriteService from "../../appwrite/config";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import Modal from "../common/Modal";
 
 const categoriesList = [
   "Technology",
@@ -26,9 +27,15 @@ const categoriesList = [
   "Environment",
 ];
 
-const PostForm = ({ postData }) => {
+const PostForm = ({ postId }) => {
   const [loading, setLoading] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [postDateImage, setPostDataImage] = useState("");
+  const [oldPostData, setOldPostData] = useState();
   const userData = useSelector((state) => state.auth.userData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const navigate = useNavigate();
   const {
     register,
@@ -48,7 +55,31 @@ const PostForm = ({ postData }) => {
     },
   });
 
-  const [previewImage, setPreviewImage] = useState(null);
+  useEffect(() => {
+    if (postId) {
+      const fetchDetails = async () => {
+        const postData = await appwriteService.getPost(postId);
+        setOldPostData(postData);
+        console.log("post Data : ", postData);
+        setValue("title", postData.title);
+        setValue("content", postData.content);
+        setValue("category", postData?.category);
+        setValue("isActive", postData?.status);
+        if (postData?.featuredImage) {
+          setPostDataImage(
+            appwriteService.getArticleImagePreview(postData?.featuredImage)
+          );
+        }
+        console.log(
+          "values after modify: ",
+          postData?.status,
+          getValues("isActive")
+        );
+      };
+
+      fetchDetails();
+    }
+  }, [postId, setValue]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -61,27 +92,114 @@ const PostForm = ({ postData }) => {
     }
   };
 
+  console.log("post id : ", postId);
+
   const onSubmit = async (data) => {
     console.log(data);
-    if (postData) {
-    } else {
+
+    if (postId) {
       setLoading(true);
-      const file = await authService.uploadFeatureImage(data.image[0]);
-      if (file) {
-        const fileId = file ? file.$id : null;
-        const dbPost = await authService.createPost({
-          title: data?.title,
-          featuredImage: fileId ? fileId : null,
-          status: data.isActive,
-          userId: userData.$id,
-          category: data.category,
-          content: data.content,
-        });
-        if (dbPost) {
-          setLoading(false);
-          navigate(`/post/${dbPost.$id}`);
+      console.log("submit button : ");
+      console.log("preview image :", previewImage);
+      console.log("data", data);
+
+      let featuredImageId = null;
+
+      if (previewImage) {
+        const newFile = await appwriteService.updateFeatureImage(
+          oldPostData.featuredImage,
+          data.image[0]
+        );
+        if (newFile) {
+          console.log("if", data);
+          featuredImageId = newFile.$id;
+        } else {
+          console.error("Error uploading feature image");
+        }
+        console.log(newFile, featuredImageId);
+      }
+      const readTime = Math.max(1, Math.round(wordCount / 200));
+      const updateData = {};
+      if (data.title !== oldPostData.title) updateData.title = data.title;
+      if (data.content !== oldPostData.content)
+        updateData.content = data.content;
+      if (data.isActive !== oldPostData.status)
+        updateData.status = data.isActive;
+      if (data.category !== oldPostData.category)
+        updateData.category = data.category;
+      if (featuredImageId) updateData.featuredImage = featuredImageId;
+      if (oldPostData.readTime !== readTime) updateData.readTime = readTime;
+      console.log("updateData : ", updateData);
+
+      const dbPost = appwriteService.updatePost(oldPostData.$id, updateData);
+
+      if (dbPost) {
+        navigate(`/post/${oldPostData.$id}`);
+        setLoading(false);
+      } else {
+        console.error("Error creating post");
+        setLoading(false);
+      }
+
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const readTime = Math.max(1, Math.round(wordCount / 200));
+      let featuredImageId = null;
+
+      if (previewImage) {
+        const file = await appwriteService.uploadFeatureImage(data.image[0]);
+        if (file) {
+          console.log("if", data);
+          featuredImageId = file.$id;
+        } else {
+          console.error("Error uploading feature image");
         }
       }
+
+      const dbPost = await appwriteService.createPost({
+        title: data?.title,
+        featuredImage: featuredImageId,
+        status: data.isActive,
+        userId: userData.$id,
+        category: data.category,
+        content: data.content,
+        readTime,
+      });
+
+      if (dbPost) {
+        navigate(`/post/${dbPost.$id}`);
+      } else {
+        console.error("Error creating post");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearImage = () => {
+    setPreviewImage(null);
+    setValue("image", null);
+    // console.log("clear : ", previewImage, getValues("image"));
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      setDeleteLoading(true);
+      if (oldPostData.featuredImage)
+        await appwriteService.deleteFeatureImage(oldPostData.featuredImage);
+      await appwriteService.deletePost(oldPostData.$id);
+      setDeleteLoading(false);
+      setIsModalOpen(false);
+      navigate("/");
+    } catch (error) {
+      console.error("Error while deleting the post : ", error);
     }
   };
 
@@ -148,6 +266,13 @@ const PostForm = ({ postData }) => {
               >
                 Featured Image
               </Text>
+              {postId ? (
+                <img
+                  className="max-w-full h-auto rounded-md mb-4"
+                  style={{ maxHeight: "200px" }}
+                  src={postDateImage}
+                />
+              ) : null}
               <input
                 type="file"
                 id="image"
@@ -162,12 +287,19 @@ const PostForm = ({ postData }) => {
               </Text>
               {previewImage && (
                 <div className="mt-2">
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="max-w-full h-auto rounded-md"
-                    style={{ maxHeight: "200px" }}
-                  />
+                  <div>
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="max-w-full h-auto rounded-md"
+                      style={{ maxHeight: "200px" }}
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <Button onClick={clearImage} color="red">
+                      clear
+                    </Button>
+                  </div>
                 </div>
               )}
               {errors.image && (
@@ -193,6 +325,8 @@ const PostForm = ({ postData }) => {
                 control={control}
                 defaultValue={getValues("content")}
                 trigger={trigger}
+                wordCount={wordCount}
+                setWordCount={setWordCount}
               />
               {errors.content && (
                 <Text size="2" color="red" className="mt-1">
@@ -204,7 +338,7 @@ const PostForm = ({ postData }) => {
             <Box className="mb-4 lg:mb-6 w-full">
               <Text
                 as="label"
-                htmlFor="content"
+                htmlFor="category"
                 size="3"
                 weight="medium"
                 className="block mb-2"
@@ -215,8 +349,9 @@ const PostForm = ({ postData }) => {
                 size="3"
                 style={{ width: "100%" }}
                 onValueChange={(value) => {
-                  setValue("category", value);
+                  setValue("category", value, { shouldValidate: true });
                 }}
+                value={getValues("category")}
               >
                 <Select.Trigger
                   placeholder="Select a category"
@@ -224,8 +359,6 @@ const PostForm = ({ postData }) => {
                 />
                 <Select.Content
                   style={{ width: "var(--radix-select-trigger-width)" }}
-                  position="popper"
-                  {...register("category")}
                 >
                   {categoriesList.map((category, index) => (
                     <Select.Item key={index} value={category}>
@@ -243,10 +376,11 @@ const PostForm = ({ postData }) => {
                 </Text>
                 <Switch
                   id="isActive"
+                  checked={getValues("isActive")}
                   onCheckedChange={(checked) => {
-                    setValue("isActive", checked);
+                    setValue("isActive", checked, { shouldDirty: true });
+                    trigger("isActive"); // This will trigger form validation if needed
                   }}
-                  value={getValues("isActive")}
                 />
               </Flex>
               <Text size="2" color="gray" className="mt-1">
@@ -254,19 +388,44 @@ const PostForm = ({ postData }) => {
               </Text>
             </Box>
 
-            <Button
-              type="submit"
-              size="3"
-              highContrast
-              variant="solid"
-              radius="large"
-              loading={loading}
-            >
-              Publish Article
-            </Button>
+            <Flex gap="3">
+              {postId ? (
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsModalOpen(true);
+                  }}
+                  size="3"
+                  color="red"
+                  radius="large"
+                >
+                  Delete
+                </Button>
+              ) : null}
+              <Button
+                type="submit"
+                size="3"
+                highContrast
+                variant="classic"
+                radius="large"
+                loading={loading}
+              >
+                {postId ? "Edit " : "Publish "}Article
+              </Button>
+            </Flex>
           </form>
         </Flex>
       </Card>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Delete Account"
+        description="Are you sure you want to delete your account? This action cannot be undone."
+        type="delete"
+        confirmText="Delete Account"
+        onConfirm={handleDeletePost}
+        loading={deleteLoading}
+      />
     </div>
   );
 };

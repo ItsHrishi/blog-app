@@ -13,33 +13,45 @@ import {
   ClockIcon,
   BookmarkIcon,
   Share2Icon,
+  Pencil2Icon,
+  TrashIcon,
 } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import appwriteService from "../../appwrite/config";
 import parse from "html-react-parser";
+import "./post-styles.css";
+import { isoToNormal } from "../../utils/dateConvert.js";
+import FullPageLoading from "../common/FullPageLoading.jsx";
+import Modal from "../common/Modal.jsx";
 
 const Post = () => {
   const [post, setPost] = useState({});
   const [loading, setLoading] = useState(true);
   const [authorData, setAuthorData] = useState({});
+  const [isAuthor, setIsAuthor] = useState(false);
   const [authorMetaData, setAuthorMetaData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [images, setImages] = useState({
+    profileImage: null,
+    featureImage: null,
+  });
   const { id } = useParams();
   const navigate = useNavigate();
 
   const userData = useSelector((state) => state.auth.userData);
 
-  const isAuthor = post && userData ? post.$id === userData.$id : false;
-
-  console.log("Id : ", id);
+  // console.log("Id : ", id);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // if (!id) {
-        //   navigate("/"); // Redirect to home if no ID
-        //   return;
-        // }
+        setLoading(true);
+        if (!id) {
+          navigate("/"); // Redirect to home if no ID
+          return;
+        }
 
         const postData = await appwriteService.getPost(id);
         if (!postData) {
@@ -54,13 +66,14 @@ const Post = () => {
         setAuthorData(writerData);
 
         const writerMetaData = await appwriteService.getAuthorMetaData(
-          postData.$id
+          postData.userId
         );
-        setAuthorMetaData(writerMetaData);
-        console.log("writer meta data : ", writerMetaData);
+        setAuthorMetaData(writerMetaData.documents[0]);
+        // console.log("writer meta data : ", writerMetaData);
 
         setLoading(false);
       } catch (error) {
+        setLoading(false);
         console.error("Error fetching post:", error);
         navigate("/"); // Or show error state
       }
@@ -69,141 +82,213 @@ const Post = () => {
     fetchData();
   }, [id, navigate]);
 
-  console.log("author data : ", authorData);
-  console.log("post data : ", post);
+  useEffect(() => {
+    if (post?.featuredImage)
+      setImages((prev) => ({
+        ...prev,
+        featureImage: appwriteService.getArticleImagePreview(
+          post?.featuredImage
+        ),
+      }));
 
-  const category = "Technology";
-  const title =
-    " Understanding the Future of Artificial Intelligence: A Comprehensive Guide";
-  const content = "";
-  const profilePhoto =
-    "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453";
-  const publishDate = "Dec 27, 2024";
-  const readTime = " 8 min read";
-  const authorName = "Sarah Johnson";
-  const authorBio =
-    "AI Researcher and Tech Writer with over 10 years of experience in machine learning and artificial intelligence. Previously worked at Google AI and DeepMind.";
+    if (authorMetaData?.profileImage)
+      setImages((prev) => ({
+        ...prev,
+        profileImage: appwriteService.getProfileImagePreview(
+          authorMetaData?.profileImage
+        ),
+      }));
 
-  return (
-    <article className="mt-8">
-      {/* Article Header */}
-      <Container className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <Flex direction="column" gap="4">
-            {/* Category */}
-            <Text size="2" className="text-xs sm:text-sm md:text-base">
-              {post?.category}
-            </Text>
-            {/* Title */}
-            <Text
-              size="8"
-              className="text-lg sm:text-xl md:text-xl lg:text-2xl font-bold max-w-4xl"
-            >
-              {post?.title}
-            </Text>
+    setIsAuthor(post && userData ? post.userId === userData.$id : false);
+  }, [post, authorMetaData]);
 
-            {/* Author Info and Article Meta */}
-            <Flex
-              direction={{ initial: "column", xs: "row" }}
-              justify="between"
-              align={{ sm: "center" }}
-              gap="4"
-              mt="4"
-              width="100%"
-            >
-              {/* Author and Article Info */}
+  const handleDeletePost = async () => {
+    try {
+      setDeleteLoading(true);
+      if (post.featuredImage)
+        await appwriteService.deleteFeatureImage(post.featuredImage);
+      await appwriteService.deletePost(post.$id);
+      setDeleteLoading(false);
+      setIsModalOpen(false);
+      navigate("/");
+    } catch (error) {
+      console.error("Error while deleting the post : ", error);
+    }
+  };
+
+  console.log("checking post : ", post);
+  console.log("checking userData : ", userData);
+
+  if (loading) return <FullPageLoading />;
+  else
+    return (
+      <article className="mt-2">
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Delete Account"
+          description="Are you sure you want to delete your account? This action cannot be undone."
+          type="delete"
+          confirmText="Delete Account"
+          onConfirm={handleDeletePost}
+          loading={deleteLoading}
+        />
+        {/* Article Header */}
+        <Container className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <Flex direction="column" gap="4">
+              {images.featureImage ? (
+                <img
+                  src={images.featureImage}
+                  alt="Featured"
+                  className="w-full h-full object-cover"
+                  style={{
+                    aspectRatio: "16/9",
+                  }}
+                />
+              ) : null}
+              {/* Category */}
+              <div className="flex  justify-between items-center">
+                <Text size="2" className="text-xs sm:text-sm md:text-base">
+                  {post?.category}
+                </Text>
+                {isAuthor ? (
+                  <Flex className="space-x-2">
+                    <Button
+                      onClick={() => {
+                        navigate(`/edit-post/${post?.$id}`);
+                      }}
+                      variant="soft"
+                      size="2"
+                    >
+                      <Pencil2Icon width="16" height="16" />
+                      <Box display={{ initial: "none", sm: "block" }} ml="1">
+                        Edit
+                      </Box>
+                    </Button>
+                    <Button
+                      onClick={() => setIsModalOpen(true)}
+                      variant="soft"
+                      size="2"
+                    >
+                      <TrashIcon width="16" height="16" />
+                      <Box display={{ initial: "none", sm: "block" }} ml="1">
+                        Delete
+                      </Box>
+                    </Button>
+                  </Flex>
+                ) : null}
+              </div>
+              {/* Title */}
+              <Text
+                size="8"
+                className="text-lg sm:text-xl md:text-xl lg:text-2xl font-bold max-w-4xl"
+              >
+                {post?.title}
+              </Text>
+              {/* Author Info and Article Meta */}
               <Flex
                 direction={{ initial: "column", xs: "row" }}
-                align={{ initial: "start", xs: "center" }}
+                justify="between"
+                align={{ sm: "center" }}
                 gap="4"
-                grow="1"
+                mt="4"
+                width="100%"
               >
-                {/* Author Info */}
-                <Flex align="center" gap="2">
-                  <Avatar
-                    src={profilePhoto}
-                    fallback="SJ"
-                    size="3"
-                    radius="full"
-                    variant="soft"
-                  />
-                  <Box>
-                    <Text weight="medium">{authorData?.name}</Text>
-                    <Flex gap="3" mt="1">
-                      <Flex align="center" gap="1">
-                        <CalendarIcon />
-                        <Text size="2" color="gray">
-                          {publishDate}
-                        </Text>
+                {/* Author and Article Info */}
+                <Flex
+                  direction={{ initial: "column", xs: "row" }}
+                  align={{ initial: "start", xs: "center" }}
+                  gap="4"
+                  grow="1"
+                >
+                  {/* Author Info */}
+                  <Flex align="center" gap="2">
+                    <Avatar
+                      src={images.profileImage}
+                      fallback="SJ"
+                      size="3"
+                      radius="full"
+                      variant="soft"
+                    />
+                    <Box>
+                      <Text weight="medium">{authorData?.name}</Text>
+                      <Flex gap="3" mt="1">
+                        <Flex align="center" gap="1">
+                          <CalendarIcon />
+                          <Text size="2" color="gray">
+                            {isoToNormal(post?.$createdAt)}
+                            {/* {post?.$createdAt} */}
+                          </Text>
+                        </Flex>
+                        <Flex align="center" gap="1">
+                          <ClockIcon />
+                          <Text size="2" color="gray">
+                            {`${post?.readTime} min read`}
+                          </Text>
+                        </Flex>
                       </Flex>
-                      <Flex align="center" gap="1">
-                        <ClockIcon />
-                        <Text size="2" color="gray">
-                          {readTime}
-                        </Text>
-                      </Flex>
-                    </Flex>
-                  </Box>
+                    </Box>
+                  </Flex>
                 </Flex>
-              </Flex>
 
-              {/* Share and Save Buttons */}
-              {/* //TODO: need to configure the share and send */}
-              <Flex
-                gap="2"
-                align="center"
-                justify={{ initial: "start", sm: "end" }}
-                width={{ initial: "100%", xs: "auto" }}
-              >
-                <Button variant="soft" size="2">
-                  <Share2Icon width="16" height="16" />
-                  <Box display={{ initial: "none", sm: "block" }} ml="1">
-                    Share
-                  </Box>
-                </Button>
-                <Button variant="soft" size="2">
-                  <BookmarkIcon width="16" height="16" />
-                  <Box display={{ initial: "none", sm: "block" }} ml="1">
-                    Save
-                  </Box>
-                </Button>
+                {/* Share and Save Buttons */}
+                {/* //TODO: need to configure the share and send */}
+                <Flex
+                  gap="2"
+                  align="center"
+                  justify={{ initial: "start", sm: "end" }}
+                  width={{ initial: "100%", xs: "auto" }}
+                >
+                  <Button variant="soft" size="2">
+                    <Share2Icon width="16" height="16" />
+                    <Box display={{ initial: "none", sm: "block" }} ml="1">
+                      Share
+                    </Box>
+                  </Button>
+                  <Button variant="soft" size="2">
+                    <BookmarkIcon width="16" height="16" />
+                    <Box display={{ initial: "none", sm: "block" }} ml="1">
+                      Save
+                    </Box>
+                  </Button>
+                </Flex>
               </Flex>
             </Flex>
-          </Flex>
-        </div>
+          </div>
 
-        {/* Main Article Content */}
-        <div className="prose prose-lg dark:prose-invert max-w-none">
-          {parse(String(post?.content))}
-          {/* {console.log(post?.content)} */}
-        </div>
+          {/* Main Article Content */}
+          <div className="tinymce-content font-[Roboto] text-base leading-relaxed">
+            {parse(String(post?.content))}
+            {/* {console.log(post?.content)} */}
+          </div>
 
-        {/* Article Footer */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <Flex direction="column" gap="4">
-            {/* Author Bio */}
-            <Card className="mb-4">
-              <Flex>
-                <Avatar
-                  size="5"
-                  src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453"
-                  fallback="A"
-                  radius="full"
-                  className="mr-4"
-                />
-                <Flex direction="column" gap="2">
-                  <Text weight="medium">{authorData?.name}</Text>
-                  <Text size="2" color="gray">
-                    {authorBio}
-                  </Text>
+          {/* Article Footer */}
+          <div className="mt-12 pt-8 border-t border-gray-200">
+            <Flex direction="column" gap="4">
+              {/* Author Bio */}
+              <Card className="mb-4">
+                <Flex>
+                  <Avatar
+                    size="4"
+                    src={images.profileImage}
+                    fallback={authorData ? authorData?.name[0] : "h"}
+                    radius="full"
+                    className="mr-4"
+                  />
+                  <Flex direction="column" gap="2">
+                    <Text weight="medium">{authorData?.name}</Text>
+                    <Text size="2" color="gray">
+                      {authorMetaData?.bio}
+                    </Text>
+                  </Flex>
                 </Flex>
-              </Flex>
-            </Card>
-          </Flex>
-        </div>
-      </Container>
-    </article>
-  );
+              </Card>
+            </Flex>
+          </div>
+        </Container>
+      </article>
+    );
 };
 
 export default Post;

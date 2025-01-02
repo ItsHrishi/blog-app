@@ -18,6 +18,7 @@ import Protected from "./components/layout/Protected.jsx";
 import AddPostPage from "./pages/AddPostPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import ErrorPage from "./components/common/ErrorPage.jsx";
+import EditPost from "./pages/EditPost.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -45,6 +46,14 @@ const router = createBrowserRouter(
           element={
             <Protected authentication={true}>
               <ProfilePage />
+            </Protected>
+          }
+        />
+        <Route
+          path="edit-post/:id"
+          element={
+            <Protected authentication={true}>
+              <EditPost />
             </Protected>
           }
         />

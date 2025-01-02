@@ -1,8 +1,25 @@
 import { Editor } from "@tinymce/tinymce-react";
 import conf from "../../conf/conf";
 import { Controller } from "react-hook-form";
+import { useRef } from "react";
 
-const RichTextEditor = ({ name, control, defaultValue = "", trigger }) => {
+const RichTextEditor = ({
+  name,
+  control,
+  defaultValue = "",
+  trigger,
+  setWordCount,
+}) => {
+  const editorRef = useRef(null);
+
+  // Function to get word count - can be called when needed
+  const getWordCount = () => {
+    if (editorRef.current) {
+      return editorRef.current.plugins.wordcount.getCount();
+    }
+    return 0;
+  };
+
   return (
     <div className="w-full">
       <Controller
@@ -11,13 +28,29 @@ const RichTextEditor = ({ name, control, defaultValue = "", trigger }) => {
         rules={{ required: "Content is required" }}
         render={({ field: { onChange } }) => (
           <Editor
-            onBlur={() => trigger("content")}
+            onInit={(evt, editor) => {
+              editorRef.current = editor;
+            }}
+            onBlur={() => {
+              trigger("content");
+              if (setWordCount) {
+                setWordCount(getWordCount());
+              }
+            }}
             apiKey={conf.tinyMCE}
             initialValue={defaultValue}
             init={{
               height: 500,
-              menubar: false, // Menu bar is explicitly set to false
+              selector: "textarea",
+              menubar: false,
               branding: false,
+              paste_as_text: true, // Forces pasting as plain text
+              paste_data_images: false, // Removes images from paste
+              paste_remove_styles_if_webkit: true,
+              paste_strip_class_attributes: "all",
+              paste_remove_styles: true,
+              paste_text_sticky: true,
+              paste_text_sticky_default: true,
               plugins: [
                 "advlist",
                 "autolink",
@@ -35,11 +68,10 @@ const RichTextEditor = ({ name, control, defaultValue = "", trigger }) => {
                 "wordcount",
                 "codesample",
                 "emoticons",
-                "hr", // Added hr plugin
               ],
               toolbar1:
                 "undo redo | formatselect | bold italic underline strikethrough forecolor backcolor | styles |" +
-                "link table charmap emoticons codesample | fullscreen preview code | removeformat",
+                "link table charmap emoticons codesample | preview code | removeformat",
               toolbar2:
                 "alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | | hr | ",
               codesample_languages: [
@@ -56,6 +88,8 @@ const RichTextEditor = ({ name, control, defaultValue = "", trigger }) => {
               quickbars_selection_toolbar:
                 "bold italic | quicklink h2 h3 blockquote | formatselect | removeformat",
               quickbars_insert_toolbar: false,
+              content_style:
+                "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; }",
             }}
             onEditorChange={onChange}
           />
