@@ -17,6 +17,7 @@ import PostPage from "./pages/PostPage.jsx";
 import Protected from "./components/layout/Protected.jsx";
 import AddPostPage from "./pages/AddPostPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import ErrorPage from "./components/common/ErrorPage.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -47,6 +48,7 @@ const router = createBrowserRouter(
             </Protected>
           }
         />
+        <Route path="*" element={<ErrorPage code={404} />} />
       </Route>
 
       <Route path="/auth" element={<AuthLayout />}>
@@ -66,6 +68,7 @@ const router = createBrowserRouter(
             </Protected>
           }
         />
+        <Route path="*" element={<ErrorPage code={404} />} />
       </Route>
     </>
   )

@@ -15,6 +15,7 @@ import appwriteService from "../../appwrite/config";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import FullPageLoading from "../common/FullPageLoading";
+import ErrorPage from "../common/ErrorPage";
 
 const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -30,6 +31,10 @@ const UserProfile = () => {
   const [tempData, setTempData] = useState(userData);
   const { id } = useParams();
   const currentUserData = useSelector((state) => state.auth.userData);
+
+  if (id !== currentUserData.$id) {
+    return <ErrorPage code={404} />;
+  }
 
   useEffect(() => {
     const fetchProfileData = async () => {

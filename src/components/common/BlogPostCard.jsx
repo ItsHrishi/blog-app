@@ -1,5 +1,5 @@
 import { Avatar, AspectRatio, Text, Badge } from "@radix-ui/themes";
-import { CalendarIcon, ClockIcon } from "@radix-ui/react-icons";
+import { ClockIcon } from "@radix-ui/react-icons";
 
 import React from "react";
 
