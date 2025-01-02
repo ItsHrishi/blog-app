@@ -1,5 +1,5 @@
-import Header from "./components/Layout/Header.jsx";
-import Footer from "./components/Layout/Footer.jsx";
+import Header from "./components/layout/Header.jsx";
+import Footer from "./components/layout/Footer.jsx";
 import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { Outlet } from "react-router-dom";
