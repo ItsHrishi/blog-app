@@ -107,12 +107,12 @@ const BlogPostList = () =>
       <div className="mt-4">
         <div className="grid grid-cols-1 ">
           {data.map((post, index) => (
-            <>
-              <BlogPostCard key={post.id} {...post} />
+            <div key={index}>
+              <BlogPostCard {...post} />
               {index < data.length - 1 && (
                 <hr className="my-4 border-gray-300 dark:border-gray-700" />
               )}
-            </>
+            </div>
           ))}
         </div>
 
@@ -120,18 +120,24 @@ const BlogPostList = () =>
         <div className="flex gap-2 mx-full justify-center my-4">
           <Button
             disabled={currentPage === 1}
+            variant="surface"
+            highContrast
             radius="full"
             onClick={() => handlePageChange(currentPage - 1)}
             size={{
               initial: "2",
               md: "3",
             }}
+            style={{
+              cursor: currentPage === 1 ? "not-allowed" : "pointer", // Dynamic cursor
+            }}
           >
             Prev
           </Button>
 
-          {pageNumbers.map((page) => (
+          {pageNumbers.map((page, index) => (
             <Button
+              key={index}
               variant={page === currentPage ? "classic" : "soft"}
               highContrast
               radius="full"
@@ -140,6 +146,7 @@ const BlogPostList = () =>
                 initial: "2",
                 md: "3",
               }}
+              style={{ cursor: "pointer" }}
             >
               {page}
             </Button>
@@ -147,11 +154,16 @@ const BlogPostList = () =>
 
           <Button
             disabled={currentPage === totalPages}
+            variant="surface"
+            highContrast
             radius="full"
             onClick={() => handlePageChange(currentPage + 1)}
             size={{
               initial: "2",
               md: "3",
+            }}
+            style={{
+              cursor: currentPage === totalPages ? "not-allowed" : "pointer", // Dynamic cursor
             }}
           >
             Next

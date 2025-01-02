@@ -14,11 +14,15 @@ import {
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./layoutStyles.css";
+import { useSelector } from "react-redux";
+import LogoutButton from "../common/LogoutButton";
 
 const Header = ({ handleThemeChange, theme }) => {
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const authStatus = useSelector((state) => state.auth.status);
+  const userData = useSelector((state) => state.auth.userData);
+  const navigate = useNavigate();
 
   return (
     <Container
@@ -30,7 +34,9 @@ const Header = ({ handleThemeChange, theme }) => {
     >
       <Flex direction="row" align="center" justify="between">
         {/* logo */}
-        <Text>Blog Spot</Text>
+        <Link to="/">
+          <Text>Blog Spot</Text>
+        </Link>
 
         {/* search */}
         <div className="hidden-search">
@@ -57,35 +63,69 @@ const Header = ({ handleThemeChange, theme }) => {
               initial: "2",
               md: "3",
             }}
+            style={{ cursor: "pointer" }}
           >
             {theme === "light" ? <MoonIcon /> : <SunIcon />}
           </IconButton>
-          <Link to="/auth/login">
-            <Button
-              size={{
-                initial: "2",
-                md: "3",
-              }}
-              highContrast
-              variant="outline"
-              radius="large"
-            >
-              Login
-            </Button>
-          </Link>
-          <Link to="/auth/signup">
-            <Button
-              size={{
-                initial: "2",
-                md: "3",
-              }}
-              highContrast
-              variant="solid"
-              radius="large"
-            >
-              Signup
-            </Button>
-          </Link>
+          {!authStatus && (
+            <>
+              <Link to="/auth/login">
+                <Button
+                  size={{
+                    initial: "2",
+                    md: "3",
+                  }}
+                  highContrast
+                  variant="outline"
+                  radius="large"
+                  style={{ cursor: "pointer" }}
+                >
+                  Login
+                </Button>
+              </Link>
+              <Link to="/auth/signup">
+                <Button
+                  size={{
+                    initial: "2",
+                    md: "3",
+                  }}
+                  highContrast
+                  variant="solid"
+                  radius="large"
+                  style={{ cursor: "pointer" }}
+                >
+                  Signup
+                </Button>
+              </Link>
+            </>
+          )}
+          {authStatus && (
+            <>
+              <LogoutButton>Logout</LogoutButton>
+              <Link to="/add-post">
+                <Button
+                  size={{
+                    initial: "2",
+                    md: "3",
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
+                  Write
+                </Button>
+              </Link>
+              <Link to={`/profile/${userData.$id}`}>
+                <Button
+                  size={{
+                    initial: "2",
+                    md: "3",
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
+                  Profile
+                </Button>
+              </Link>
+            </>
+          )}
         </Flex>
       </Flex>
     </Container>

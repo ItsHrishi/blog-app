@@ -1,15 +1,39 @@
-import { Client, Databases, Storage, Query, ID } from "appwrite";
+import { Client, Databases, Storage, Query, ID, Account } from "appwrite";
 import conf from "../conf/conf";
 
 export class Service {
   client = new Client();
   databases;
   bucket;
+  account;
 
   constructor() {
     this.client.setEndpoint(conf.appwriteUrl).setProject(conf.projectId);
     this.databases = new Databases(this.client);
     this.bucket = new Storage(this.client);
+    this.account = new Account(this.client);
+  }
+
+  async getAuthorData(id) {
+    try {
+      const user = await this.account.get(id);
+      return user;
+    } catch (error) {
+      console.error("Appwrite service :: getAuthorData :: ", error);
+    }
+  }
+
+  async getAuthorMetaData(id) {
+    try {
+      const queries = [Query.equal("userId", id)];
+      return await this.databases.listDocuments(
+        conf.databaseId,
+        conf.collectionIdUser,
+        queries
+      );
+    } catch (error) {
+      console.error("Appwrite service :: getAuthorMetaData :: ", error);
+    }
   }
 
   async createPost({ title, content, featuredImage, status, userId }) {
@@ -71,7 +95,7 @@ export class Service {
       return false;
     }
   }
-  async getAllPosts(queries = [Query.equal("status", "active")]) {
+  async getAllPosts(queries = [Query.equal("status", "true")]) {
     try {
       await this.databases.listDocuments(
         conf.databaseId,
@@ -135,7 +159,7 @@ export class Service {
   async deleteProfilePhoto(fileId) {
     try {
       await this.bucket.deleteFile(conf.bucketIdProfile, fileId);
-      return ture;
+      return true;
     } catch (error) {
       console.error("Appwrite service :: deleteProfilePhoto :: ", error);
       return false;
@@ -152,6 +176,62 @@ export class Service {
       console.error("Appwrite service :: updateProfilePhoto :: ", error);
       return false;
     }
+  }
+
+  async updateUserMetaData({ userId, bio, profileImage }) {
+    const findAuthor = await this.getAuthorMetaData(userId);
+
+    console.log("find author : ", findAuthor);
+    try {
+      if (!findAuthor.documents[0]) {
+        console.log("inside else !!");
+        return await this.databases.createDocument(
+          conf.databaseId,
+          conf.collectionIdUser,
+          ID.unique(),
+          {
+            userId,
+            profileImage,
+            bio,
+          }
+        );
+      } else {
+        console.log("inside if XD  del file here:: ", findAuthor);
+        return await this.databases.updateDocument(
+          conf.databaseId,
+          conf.collectionIdUser,
+          findAuthor.documents[0].$id,
+          {
+            bio,
+            profileImage,
+          }
+        );
+      }
+    } catch (error) {
+      console.log(
+        "error while updating the user meat data :: updateUserMetaData",
+        error
+      );
+    }
+  }
+
+  async updateUserName(name) {
+    try {
+      return this.account.updateName(name);
+    } catch (error) {
+      console.log(
+        "Appwrite service :: updateProfilePhoto ::  updateUserName",
+        error
+      );
+    }
+  }
+
+  getProfileImagePreview(fileId) {
+    return this.bucket.getFilePreview(conf.bucketIdProfile, fileId);
+  }
+
+  getArticleImagePreview(fileId) {
+    return this.bucket.getFilePreview(conf.bucketIdArticle, fileId);
   }
 }
 

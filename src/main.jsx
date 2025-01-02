@@ -9,24 +9,63 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-import Home from "./components/layout/Home.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import AuthLayout from "./AuthLayout.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import PostPage from "./pages/PostPage.jsx";
+import Protected from "./components/layout/Protected.jsx";
+import AddPostPage from "./pages/AddPostPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/" element={<Layout />}>
-        <Route path="" element={<Home />} />
-        <Route path="/post" element={<PostPage />} />
+        <Route index element={<HomePage />} />
+        <Route
+          path="post/:id"
+          element={
+            <Protected authentication={true}>
+              <PostPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="add-post"
+          element={
+            <Protected authentication={true}>
+              <AddPostPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="profile/:id"
+          element={
+            <Protected authentication={true}>
+              <ProfilePage />
+            </Protected>
+          }
+        />
       </Route>
-      <Route>
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="login" element={<LoginPage />} />
-          <Route path="signup" element={<SignupPage />} />
-        </Route>
+
+      <Route path="/auth" element={<AuthLayout />}>
+        <Route
+          path="login"
+          element={
+            <Protected authentication={false}>
+              <LoginPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="signup"
+          element={
+            <Protected authentication={false}>
+              <SignupPage />
+            </Protected>
+          }
+        />
       </Route>
     </>
   )

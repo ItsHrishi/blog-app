@@ -19,7 +19,7 @@ export class AuthService {
         name
       );
       if (user) {
-        this.login(email, password);
+        return this.login({ email, password });
       } else {
         return user;
       }
@@ -49,3 +49,7 @@ export class AuthService {
     }
   }
 }
+
+const authService = new AuthService();
+
+export default authService;

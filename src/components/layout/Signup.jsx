@@ -1,8 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, Flex, Text, Box, Button, TextField } from "@radix-ui/themes";
 import { useForm } from "react-hook-form";
+import authService from "../../appwrite/auth";
+import { useDispatch } from "react-redux";
+import { login } from "../../store/features/authSlice";
+import { Link, useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [authError, setAuthError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -10,8 +19,26 @@ const SignupPage = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log(data);
+    try {
+      setLoading(true);
+      const user = await authService.registerUser({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+      });
+      console.log(user);
+      if (user) {
+        const userData = await authService.getCurrentUser();
+        if (userData) dispatch(login(userData));
+        navigate("/");
+      }
+      setLoading(false);
+    } catch (error) {
+      setAuthError(error.message);
+      setLoading(false);
+    }
   };
 
   const password = watch("password");
@@ -28,7 +55,7 @@ const SignupPage = () => {
           <Text as="h2" size="5" weight="bold" className="mb-6">
             Sign Up
           </Text>
-
+          {authError && <Text color="red">{authError}</Text>}
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="w-full flex flex-col items-center"
@@ -151,16 +178,32 @@ const SignupPage = () => {
               )}
             </Box>
 
-            <Button size="3" highContrast variant="solid" radius="large">
+            <Button
+              loading={loading}
+              size="3"
+              highContrast
+              variant="solid"
+              radius="large"
+            >
               Sign Up
             </Button>
           </form>
 
-          <Text size="2" className="mt-4 sm:mt-4 lg:mt-6 text-center">
+          <Text
+            size="2"
+            color="gray"
+            className="mt-4 sm:mt-4 lg:mt-6 text-center"
+          >
             Already have an account?{" "}
-            <Text as="a" href="#" className="hover:underline">
-              Login
-            </Text>
+            <Link to="/auth/login">
+              <Text
+                as="a"
+                href="#"
+                className="text-black dark:text-white hover:underline"
+              >
+                Login
+              </Text>
+            </Link>
           </Text>
         </Flex>
       </Card>

@@ -11,6 +11,9 @@ import {
 } from "@radix-ui/themes";
 import { useForm } from "react-hook-form";
 import RichTextEditor from "../RichTextEditor/RichTextEditor";
+import authService from "../../appwrite/config";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const categoriesList = [
   "Technology",
@@ -23,7 +26,10 @@ const categoriesList = [
   "Environment",
 ];
 
-const PostForm = () => {
+const PostForm = ({ postData }) => {
+  const [loading, setLoading] = useState(false);
+  const userData = useSelector((state) => state.auth.userData);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -36,7 +42,7 @@ const PostForm = () => {
     defaultValues: {
       title: "",
       content: "",
-      isActive: false,
+      isActive: true,
       category: "",
       image: null,
     },
@@ -55,16 +61,28 @@ const PostForm = () => {
     }
   };
 
-  const onSubmit = (data) => {
-    const formData = new FormData();
-    formData.append("title", data.title);
-    formData.append("content", data.content);
-    formData.append("isActive", data.isActive);
-    formData.append("category", data.category);
-    if (data.image[0]) {
-      formData.append("image", data.image[0]);
-    }
+  const onSubmit = async (data) => {
     console.log(data);
+    if (postData) {
+    } else {
+      setLoading(true);
+      const file = await authService.uploadFeatureImage(data.image[0]);
+      if (file) {
+        const fileId = file ? file.$id : null;
+        const dbPost = await authService.createPost({
+          title: data?.title,
+          featuredImage: fileId ? fileId : null,
+          status: data.isActive,
+          userId: userData.$id,
+          category: data.category,
+          content: data.content,
+        });
+        if (dbPost) {
+          setLoading(false);
+          navigate(`/post/${dbPost.$id}`);
+        }
+      }
+    }
   };
 
   return (
@@ -133,12 +151,15 @@ const PostForm = () => {
               <input
                 type="file"
                 id="image"
-                accept="image/*"
+                accept="image/png, image/jpg, image/jpeg, image/gif"
                 className="w-full p-2 border rounded-md "
                 style={{ outlineColor: "var(--accent-7)" }}
                 {...register("image")}
                 onChange={handleImageChange}
               />
+              <Text size="1" color="gray">
+                (Please upload the image in 16:9 aspect ratio)
+              </Text>
               {previewImage && (
                 <div className="mt-2">
                   <img
@@ -206,8 +227,10 @@ const PostForm = () => {
                   position="popper"
                   {...register("category")}
                 >
-                  {categoriesList.map((category) => (
-                    <Select.Item value={category}>{category}</Select.Item>
+                  {categoriesList.map((category, index) => (
+                    <Select.Item key={index} value={category}>
+                      {category}
+                    </Select.Item>
                   ))}
                 </Select.Content>
               </Select.Root>
@@ -237,6 +260,7 @@ const PostForm = () => {
               highContrast
               variant="solid"
               radius="large"
+              loading={loading}
             >
               Publish Article
             </Button>

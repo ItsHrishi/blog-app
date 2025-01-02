@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
-  Heading,
   Text,
   Avatar,
   Flex,
@@ -14,11 +13,65 @@ import {
   ClockIcon,
   BookmarkIcon,
   Share2Icon,
-  LinkedInLogoIcon,
-  TwitterLogoIcon,
 } from "@radix-ui/react-icons";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import appwriteService from "../../appwrite/config";
+import parse from "html-react-parser";
 
 const Post = () => {
+  const [post, setPost] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [authorData, setAuthorData] = useState({});
+  const [authorMetaData, setAuthorMetaData] = useState({});
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const userData = useSelector((state) => state.auth.userData);
+
+  const isAuthor = post && userData ? post.$id === userData.$id : false;
+
+  console.log("Id : ", id);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // if (!id) {
+        //   navigate("/"); // Redirect to home if no ID
+        //   return;
+        // }
+
+        const postData = await appwriteService.getPost(id);
+        if (!postData) {
+          throw new Error("Post not found");
+        }
+        setPost(postData);
+
+        const writerData = await appwriteService.getAuthorData(postData.$id);
+        if (!writerData) {
+          throw new Error("Author data not found");
+        }
+        setAuthorData(writerData);
+
+        const writerMetaData = await appwriteService.getAuthorMetaData(
+          postData.$id
+        );
+        setAuthorMetaData(writerMetaData);
+        console.log("writer meta data : ", writerMetaData);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching post:", error);
+        navigate("/"); // Or show error state
+      }
+    };
+
+    fetchData();
+  }, [id, navigate]);
+
+  console.log("author data : ", authorData);
+  console.log("post data : ", post);
+
   const category = "Technology";
   const title =
     " Understanding the Future of Artificial Intelligence: A Comprehensive Guide";
@@ -39,14 +92,14 @@ const Post = () => {
           <Flex direction="column" gap="4">
             {/* Category */}
             <Text size="2" className="text-xs sm:text-sm md:text-base">
-              {category}
+              {post?.category}
             </Text>
             {/* Title */}
             <Text
               size="8"
               className="text-lg sm:text-xl md:text-xl lg:text-2xl font-bold max-w-4xl"
             >
-              {title}
+              {post?.title}
             </Text>
 
             {/* Author Info and Article Meta */}
@@ -75,7 +128,7 @@ const Post = () => {
                     variant="soft"
                   />
                   <Box>
-                    <Text weight="medium">{authorName}</Text>
+                    <Text weight="medium">{authorData?.name}</Text>
                     <Flex gap="3" mt="1">
                       <Flex align="center" gap="1">
                         <CalendarIcon />
@@ -121,7 +174,8 @@ const Post = () => {
 
         {/* Main Article Content */}
         <div className="prose prose-lg dark:prose-invert max-w-none">
-          {content}
+          {parse(String(post?.content))}
+          {/* {console.log(post?.content)} */}
         </div>
 
         {/* Article Footer */}
@@ -138,7 +192,7 @@ const Post = () => {
                   className="mr-4"
                 />
                 <Flex direction="column" gap="2">
-                  <Text weight="medium">{authorName}</Text>
+                  <Text weight="medium">{authorData?.name}</Text>
                   <Text size="2" color="gray">
                     {authorBio}
                   </Text>

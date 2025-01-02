@@ -1,15 +1,39 @@
 import { Theme, Box, Flex, Text, Container } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Outlet } from "react-router-dom";
 import { Link } from "react-router-dom";
+import authService from "./appwrite/auth";
+import { login, logout } from "./store/features/authSlice";
+import { useEffect, useState } from "react";
+import FullPageLoading from "./components/common/FullPageLoading";
 
 const AuthLayout = () => {
   const theme = useSelector((state) => state.theme);
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+  const themeAppearance = theme?.theme || "light";
   console.log("theme : ", theme.theme);
 
-  return (
-    <Theme accentColor="gray" radius="large" appearance={theme.theme}>
+  useEffect(() => {
+    authService
+      .getCurrentUser()
+      .then((data) => {
+        if (data) {
+          dispatch(login(data));
+        } else {
+          dispatch(logout());
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  return loading ? (
+    <FullPageLoading />
+  ) : (
+    <Theme accentColor="gray" radius="large" appearance={themeAppearance}>
       {/* header */}
       <Container
         className="w-full sticky top-0 z-20 drop-shadow-md"
