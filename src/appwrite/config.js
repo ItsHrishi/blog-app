@@ -110,9 +110,9 @@ export class Service {
       return false;
     }
   }
-  async getAllPosts(queries = [Query.equal("status", "true")]) {
+  async getAllPosts(queries = [Query.equal("status", true)]) {
     try {
-      await this.databases.listDocuments(
+      return await this.databases.listDocuments(
         conf.databaseId,
         conf.collectionIdArticle,
         queries
@@ -193,7 +193,7 @@ export class Service {
     }
   }
 
-  async updateUserMetaData({ userId, bio, profileImage }) {
+  async updateUserMetaData({ userId, bio, profileImage, userName }) {
     const findAuthor = await this.getAuthorMetaData(userId);
 
     console.log("find author : ", findAuthor);
@@ -208,6 +208,7 @@ export class Service {
             userId,
             profileImage,
             bio,
+            userName,
           }
         );
       } else {
@@ -219,6 +220,7 @@ export class Service {
           {
             bio,
             profileImage,
+            userName,
           }
         );
       }
@@ -247,6 +249,13 @@ export class Service {
 
   getArticleImagePreview(fileId) {
     return this.bucket.getFilePreview(conf.bucketIdArticle, fileId);
+  }
+
+  async getSlidePosts() {
+    return this.databases.listDocuments(
+      conf.databaseId,
+      conf.collectionIdSliderArticles
+    );
   }
 }
 

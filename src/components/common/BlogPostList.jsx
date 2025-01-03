@@ -1,176 +1,166 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import BlogPostCard from "./BlogPostCard";
 import { Button } from "@radix-ui/themes";
+import appwriteService from "../../appwrite/config";
+import { Query } from "appwrite";
+import { useNavigate } from "react-router-dom";
+import PostLoading from "../loading/PostLoading";
 
-const posts = {
-  data: [
-    {
-      id: 1,
-      title: "Building Scalable Applications with React and Node.js",
-      excerpt:
-        "Learn how to create enterprise-grade applications using modern web technologies and best practices for scalability. We'll cover everything from setup to deployment.",
-      author: {
-        name: "Sarah Parker",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        username: "sparker",
-      },
-      publishDate: "Dec 27, 2024",
-      readTime: "5 min read",
-      category: "Programming",
-      image:
-        "https://t4.ftcdn.net/jpg/06/38/30/11/360_F_638301102_u3KnhyJRD5YgpsKsCvuYqLLBhsmnJ6HE.jpg",
-    },
-    {
-      id: 2,
-      title: "Understanding the Basics of Machine Learning",
-      excerpt:
-        "A beginner's guide to understanding the concepts and techniques behind machine learning, including supervised and unsupervised learning.",
-      author: {
-        name: "John Doe",
-        avatar: "https://i.pravatar.cc/150?img=2",
-        username: "jdoe",
-      },
-      publishDate: "Dec 25, 2024",
-      readTime: "7 min read",
-      category: "Data Science",
-      image:
-        "https://t4.ftcdn.net/jpg/06/38/30/10/360_F_638301100_KjGexjHZgfkGHBADweVDUsyb68xzAnUi.jpg",
-    },
-    {
-      id: 3,
-      title: "Top 10 JavaScript Frameworks in 2024",
-      excerpt:
-        "Discover the top JavaScript frameworks that are shaping the web development landscape in 2024, and when to use each one.",
-      author: {
-        name: "Alice Johnson",
-        avatar: "https://i.pravatar.cc/150?img=3",
-        username: "alicej",
-      },
-      publishDate: "Dec 20, 2024",
-      readTime: "6 min read",
-      category: "Web Development",
-      image:
-        "https://t4.ftcdn.net/jpg/06/38/30/12/360_F_638301104_i8hHC7DmF5BCsUeTYUZWi1MaV37FPUsD.jpg",
-    },
-    {
-      id: 4,
-      title: "Mastering CSS Grid and Flexbox",
-      excerpt:
-        "Learn the differences between CSS Grid and Flexbox, and when to use each layout method to create responsive web designs.",
-      author: {
-        name: "Chris Lee",
-        avatar: "https://i.pravatar.cc/150?img=4",
-        username: "clee",
-      },
-      publishDate: "Dec 15, 2024",
-      readTime: "8 min read",
-      category: "Design",
-      image:
-        "https://t4.ftcdn.net/jpg/06/38/30/14/360_F_638301108_urBpblqJPHfpXm9GJxYXEIXg7Bi6tWzF.jpg",
-    },
-  ],
-  currentPage: 3,
-  postsPerPage: 5,
-  totalPosts: 20,
-};
+const BlogPostList = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState();
+  const [posts, setPosts] = useState({
+    data: [],
+    total: 0,
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 3;
+  const maxButtons = 5;
 
-const BlogPostList = () =>
-  // { posts = [], postsPerPage=5, totalPages = 12, currentPage = 1 }
-  {
-    const data = posts.data;
-    const totalPages = Math.ceil(posts.totalPosts / posts.postsPerPage);
-    const [currentPage, setCurrentPage] = useState(posts.currentPage);
-    console.log("totalPages : ", totalPages);
+  useEffect(() => {
+    fetchPosts();
+  }, [currentPage]);
 
-    const maxButtons = 5;
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      // Calculate offset based on current page
+      const offset = (currentPage - 1) * postsPerPage;
 
-    const startPage = Math.max(
-      1,
-      Math.min(
-        currentPage - Math.floor(maxButtons / 2),
-        totalPages - maxButtons + 1
-      )
-    );
-    const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      const queries = [
+        Query.equal("status", true), // Your default query
+        Query.limit(postsPerPage),
+        Query.offset(offset),
+        Query.orderDesc("$createdAt"), // Optional: Order by creation date
+      ];
 
-    const pageNumbers = Array.from(
-      { length: endPage - startPage + 1 },
-      (_, index) => startPage + index
-    );
+      const response = await appwriteService.getAllPosts(queries);
 
-    const handlePageChange = (num) => {
-      // api call to the changing number
-      setCurrentPage(num);
-    };
+      if (response) {
+        setPosts({
+          data: response.documents,
+          total: response.total,
+        });
+      } else {
+        // Handle the case where getAllPosts returns false
+        console.error("Failed to fetch posts");
+        setPosts({
+          data: [],
+          total: 0,
+        });
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setPosts({
+        data: [],
+        total: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const totalPages = Math.ceil(posts.total / postsPerPage);
+
+  const startPage = Math.max(
+    1,
+    Math.min(
+      currentPage - Math.floor(maxButtons / 2),
+      totalPages - maxButtons + 1
+    )
+  );
+  const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+  const pageNumbers = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, index) => startPage + index
+  );
+
+  const handlePageChange = (pageNum) => {
+    setCurrentPage(pageNum);
+    // The useEffect will trigger the new data fetch
+  };
+
+  if (loading)
+    return Array(3)
+      .fill(null)
+      .map((_, index) => <PostLoading key={index} />);
+  else
     return (
       <div className="mt-4">
-        <div className="grid grid-cols-1 ">
-          {data.map((post, index) => (
-            <div key={index}>
-              <BlogPostCard {...post} />
-              {index < data.length - 1 && (
+        <div className="grid grid-cols-1">
+          {posts.data.map((post, index) => (
+            <div key={post.$id}>
+              <BlogPostCard postId={post.$id} />
+              {index < posts.data.length - 1 && (
                 <hr className="my-4 border-gray-300 dark:border-gray-700" />
               )}
             </div>
           ))}
+
+          {posts.data.length === 0 && (
+            <div className="text-center py-4 text-gray-500">No posts found</div>
+          )}
         </div>
 
-        {/* Pagination Controls */}
-        <div className="flex gap-2 mx-full justify-center my-4">
-          <Button
-            disabled={currentPage === 1}
-            variant="surface"
-            highContrast
-            radius="full"
-            onClick={() => handlePageChange(currentPage - 1)}
-            size={{
-              initial: "2",
-              md: "3",
-            }}
-            style={{
-              cursor: currentPage === 1 ? "not-allowed" : "pointer", // Dynamic cursor
-            }}
-          >
-            Prev
-          </Button>
-
-          {pageNumbers.map((page, index) => (
+        {/* Only show pagination if there are posts */}
+        {posts.total > 0 && (
+          <div className="flex gap-2 mx-full justify-center my-4">
             <Button
-              key={index}
-              variant={page === currentPage ? "classic" : "soft"}
+              disabled={currentPage === 1}
+              variant="surface"
               highContrast
               radius="full"
-              onClick={() => handlePageChange(page)}
+              onClick={() => handlePageChange(currentPage - 1)}
               size={{
                 initial: "2",
                 md: "3",
               }}
-              style={{ cursor: "pointer" }}
+              style={{
+                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+              }}
             >
-              {page}
+              Prev
             </Button>
-          ))}
 
-          <Button
-            disabled={currentPage === totalPages}
-            variant="surface"
-            highContrast
-            radius="full"
-            onClick={() => handlePageChange(currentPage + 1)}
-            size={{
-              initial: "2",
-              md: "3",
-            }}
-            style={{
-              cursor: currentPage === totalPages ? "not-allowed" : "pointer", // Dynamic cursor
-            }}
-          >
-            Next
-          </Button>
-        </div>
+            {pageNumbers.map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "classic" : "soft"}
+                highContrast
+                radius="full"
+                onClick={() => handlePageChange(page)}
+                size={{
+                  initial: "2",
+                  md: "3",
+                }}
+                style={{ cursor: "pointer" }}
+              >
+                {page}
+              </Button>
+            ))}
+
+            <Button
+              disabled={currentPage === totalPages}
+              variant="surface"
+              highContrast
+              radius="full"
+              onClick={() => handlePageChange(currentPage + 1)}
+              size={{
+                initial: "2",
+                md: "3",
+              }}
+              style={{
+                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     );
-  };
+};
 
 export default BlogPostList;

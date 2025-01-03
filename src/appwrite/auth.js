@@ -1,13 +1,15 @@
-import { Client, Account, ID } from "appwrite";
+import { Client, Account, ID, Databases } from "appwrite";
 import conf from "../conf/conf";
 
 export class AuthService {
   client = new Client();
   account;
+  databases;
 
   constructor() {
     this.client.setEndpoint(conf.appwriteUrl).setProject(conf.projectId);
     this.account = new Account(this.client);
+    this.databases = new Databases(this.client);
   }
 
   async registerUser({ email, password, name }) {
@@ -19,6 +21,17 @@ export class AuthService {
         name
       );
       if (user) {
+        console.log("user", user);
+        const addUserInDB = await this.databases.createDocument(
+          conf.databaseId,
+          conf.collectionIdUser,
+          ID.unique(),
+          {
+            userId: user.$id,
+            userName: user.name,
+          }
+        );
+        console.log("addUserInDB ", addUserInDB);
         return this.login({ email, password });
       } else {
         return user;

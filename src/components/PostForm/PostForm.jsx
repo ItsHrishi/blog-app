@@ -118,7 +118,7 @@ const PostForm = ({ postId }) => {
         }
         console.log(newFile, featuredImageId);
       }
-      const readTime = Math.max(1, Math.round(wordCount / 200));
+      const readTime = Math.max(1, Math.round(wordCount / 150));
       const updateData = {};
       if (data.title !== oldPostData.title) updateData.title = data.title;
       if (data.content !== oldPostData.content)
@@ -148,7 +148,7 @@ const PostForm = ({ postId }) => {
     try {
       setLoading(true);
 
-      const readTime = Math.max(1, Math.round(wordCount / 200));
+      const readTime = Math.max(1, Math.round(wordCount / 150));
       let featuredImageId = null;
 
       if (previewImage) {

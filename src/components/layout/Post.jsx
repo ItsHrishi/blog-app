@@ -28,7 +28,7 @@ import Modal from "../common/Modal.jsx";
 const Post = () => {
   const [post, setPost] = useState({});
   const [loading, setLoading] = useState(true);
-  const [authorData, setAuthorData] = useState({});
+  // const [authorData, setAuthorData] = useState({});
   const [isAuthor, setIsAuthor] = useState(false);
   const [authorMetaData, setAuthorMetaData] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,17 +59,11 @@ const Post = () => {
         }
         setPost(postData);
 
-        const writerData = await appwriteService.getAuthorData(postData.$id);
-        if (!writerData) {
-          throw new Error("Author data not found");
-        }
-        setAuthorData(writerData);
-
         const writerMetaData = await appwriteService.getAuthorMetaData(
           postData.userId
         );
         setAuthorMetaData(writerMetaData.documents[0]);
-        // console.log("writer meta data : ", writerMetaData);
+        console.log("writer meta data : ", writerMetaData);
 
         setLoading(false);
       } catch (error) {
@@ -117,7 +111,7 @@ const Post = () => {
   };
 
   console.log("checking post : ", post);
-  console.log("checking userData : ", userData);
+  console.log("checking authorMetaData : ", authorMetaData);
 
   if (loading) return <FullPageLoading />;
   else
@@ -212,7 +206,7 @@ const Post = () => {
                       variant="soft"
                     />
                     <Box>
-                      <Text weight="medium">{authorData?.name}</Text>
+                      <Text weight="medium">{authorMetaData?.userName}</Text>
                       <Flex gap="3" mt="1">
                         <Flex align="center" gap="1">
                           <CalendarIcon />
@@ -272,12 +266,14 @@ const Post = () => {
                   <Avatar
                     size="4"
                     src={images.profileImage}
-                    fallback={authorData ? authorData?.name[0] : "h"}
+                    fallback={
+                      authorMetaData ? authorMetaData?.userName[0] : "h"
+                    }
                     radius="full"
                     className="mr-4"
                   />
                   <Flex direction="column" gap="2">
-                    <Text weight="medium">{authorData?.name}</Text>
+                    <Text weight="medium">{authorMetaData?.name}</Text>
                     <Text size="2" color="gray">
                       {authorMetaData?.bio}
                     </Text>

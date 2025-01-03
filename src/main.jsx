@@ -28,9 +28,9 @@ const router = createBrowserRouter(
         <Route
           path="post/:id"
           element={
-            <Protected authentication={true}>
-              <PostPage />
-            </Protected>
+            // <Protected authentication={false}>
+            <PostPage />
+            // </Protected>
           }
         />
         <Route

@@ -30,6 +30,7 @@ const UserProfile = () => {
   const [tempData, setTempData] = useState(userData);
   const { id } = useParams();
   const currentUserData = useSelector((state) => state.auth.userData);
+  const [error, setError] = useState("");
 
   if (id !== currentUserData.$id) {
     return <ErrorPage code={404} />;
@@ -61,65 +62,82 @@ const UserProfile = () => {
 
   const handleSave = async () => {
     try {
-      setLoading(true);
-      let profileImageId = userData.profilePhoto;
-      console.log("check 1", tempData.profilePhoto);
-      console.log("check 2", userData.profilePhoto);
+      if (error.length <= 0) {
+        setLoading(true);
+        let profileImageId = userData.profilePhoto;
 
-      if (
-        displayNewProfile &&
-        tempData.profilePhoto !== userData.profilePhoto &&
-        userData.profilePhoto.length > 0
-      ) {
-        console.log("inside if : ");
-        const fileUpload = await appwriteService.updateProfilePhoto(
-          userData.profilePhoto,
-          tempData.profilePhoto
-        );
-        if (fileUpload) {
-          profileImageId = fileUpload.$id;
-        } else {
-          console.error("Error updating the profile photo");
-          return;
+        if (
+          displayNewProfile &&
+          tempData.profilePhoto !== userData.profilePhoto &&
+          userData.profilePhoto.length > 0
+        ) {
+          console.log("inside if : ");
+          const fileUpload = await appwriteService.updateProfilePhoto(
+            userData.profilePhoto,
+            tempData.profilePhoto
+          );
+          if (fileUpload) {
+            profileImageId = fileUpload.$id;
+          } else {
+            console.error("Error updating the profile photo");
+            return;
+          }
+        } else if (
+          displayNewProfile &&
+          tempData.profilePhoto !== userData.profilePhoto
+        ) {
+          const fileUpload = await appwriteService.uploadProfilePhoto(
+            tempData.profilePhoto
+          );
+          if (fileUpload) {
+            profileImageId = fileUpload.$id;
+          } else {
+            console.error("Error uploading new the profile photo");
+            return;
+          }
         }
-      } else if (
-        displayNewProfile &&
-        tempData.profilePhoto !== userData.profilePhoto
-      ) {
-        const fileUpload = await appwriteService.uploadProfilePhoto(
-          tempData.profilePhoto
-        );
-        if (fileUpload) {
-          profileImageId = fileUpload.$id;
-        } else {
-          console.error("Error uploading new the profile photo");
-          return;
+
+        const updateUserMetaData = await appwriteService.updateUserMetaData({
+          userId: currentUserData.$id,
+          bio: tempData.bio,
+          profileImage: profileImageId,
+          userName: tempData.name,
+        });
+
+        if (userData.name !== tempData.name) {
+          await appwriteService.updateUserName(tempData.name);
         }
+
+        console.log("updateUserMetaData:", updateUserMetaData);
+
+        setIsEditing(false);
+        setLoading(false);
+        setDisplayNewProfile(null);
+        setFullPageLoading(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       }
-
-      const updateUserMetaData = await appwriteService.updateUserMetaData({
-        userId: currentUserData.$id,
-        bio: tempData.bio,
-        profileImage: profileImageId,
-      });
-
-      if (userData.name !== tempData.name) {
-        await appwriteService.updateUserName(tempData.name);
-      }
-
-      console.log("updateUserMetaData:", updateUserMetaData);
-
-      setIsEditing(false);
-      setLoading(false);
-      setDisplayNewProfile(null);
-      setFullPageLoading(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
     } catch (error) {
       console.error("Error updating user data:", error);
       setLoading(false);
     }
+  };
+
+  const validateName = (name) => {
+    if (name.trim() === "") {
+      setError("Name cannot be empty.");
+    } else if (name.length < 5) {
+      setError("Name must be at least 5 characters long.");
+    } else {
+      setError("");
+    }
+  };
+
+  const handleNameChange = (e) => {
+    const { value } = e.target;
+    setTempData((prev) => ({ ...prev, name: value }));
+    validateName(value);
   };
 
   return fullPageLoading ? (
@@ -233,15 +251,27 @@ const UserProfile = () => {
                   Name
                 </Text>
                 {isEditing ? (
-                  <TextField.Root
-                    className="w-full"
-                    value={tempData.name}
-                    onChange={(e) =>
-                      setTempData((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                  />
+                  <div>
+                    <TextField.Root
+                      className="w-full"
+                      value={tempData.name}
+                      placeholder="Enter your name"
+                      onChange={handleNameChange}
+                    />
+                    {error && (
+                      <Text color="red" size="2" className="mt-1">
+                        {error}
+                      </Text>
+                    )}
+                  </div>
                 ) : (
-                  <Text weight="regular" className="text-base ml-2">
+                  <Text
+                    weight="regular"
+                    style={{
+                      backgroundColor: "var(--accent-4)",
+                    }}
+                    className="text-base rounded-md p-1 ml-2"
+                  >
                     {userData.name}
                   </Text>
                 )}
@@ -259,7 +289,13 @@ const UserProfile = () => {
                     value={tempData.email}
                   />
                 ) : (
-                  <Text weight="regular" className="text-base ml-2">
+                  <Text
+                    weight="regular"
+                    style={{
+                      backgroundColor: "var(--accent-4)",
+                    }}
+                    className="text-base rounded-md p-1 ml-2"
+                  >
                     {userData.email}
                   </Text>
                 )}
@@ -281,6 +317,9 @@ const UserProfile = () => {
                       }
                       size="3"
                       className="w-full"
+                      style={{
+                        height: "180px",
+                      }}
                     />
                   </>
                 ) : (
@@ -290,7 +329,10 @@ const UserProfile = () => {
                     </Text>
                     <Text
                       weight="regular"
-                      className="text-base whitespace-pre-wrap ml-2"
+                      className="text-base rounded-md p-1 whitespace-pre-wrap ml-2"
+                      style={{
+                        backgroundColor: "var(--accent-4)",
+                      }}
                     >
                       {userData.bio || "No bio added yet."}
                     </Text>
