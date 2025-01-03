@@ -71,7 +71,6 @@ const UserProfile = () => {
           tempData.profilePhoto !== userData.profilePhoto &&
           userData.profilePhoto.length > 0
         ) {
-          console.log("inside if : ");
           const fileUpload = await appwriteService.updateProfilePhoto(
             userData.profilePhoto,
             tempData.profilePhoto
@@ -107,8 +106,6 @@ const UserProfile = () => {
         if (userData.name !== tempData.name) {
           await appwriteService.updateUserName(tempData.name);
         }
-
-        console.log("updateUserMetaData:", updateUserMetaData);
 
         setIsEditing(false);
         setLoading(false);

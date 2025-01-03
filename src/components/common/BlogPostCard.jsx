@@ -30,7 +30,7 @@ const BlogPostCard = ({ postId = "6777bcac000df808a905" }) => {
     fetchData();
   }, []);
 
-  console.log("all data : ", postData, authorData);
+  // console.log("all data : ", postData, authorData);
 
   return (
     <div className="my-2 md:my-5 mx-2 xl:w-full sm:mx-auto sm:w-10/12 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 border-0 rounded-none max-h-[240px] sm:max-h-[220px] md:max-h-[200px]">

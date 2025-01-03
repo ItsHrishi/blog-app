@@ -21,18 +21,17 @@ const LoginPage = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    console.log(data);
     try {
       setLoading(true);
       const session = await authService.login({
         email: data.email,
         password: data.password,
       });
-      console.log("data after login ", session);
+      // console.log("data after login ", session);
       if (session) {
         const userData = await authService.getCurrentUser();
         if (userData) {
-          console.log("login : userdata : ", userData);
+          // console.log("login : userdata : ", userData);
           dispatch(authLogin(userData));
         }
         navigate("/");

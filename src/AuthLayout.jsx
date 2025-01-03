@@ -13,7 +13,6 @@ const AuthLayout = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const themeAppearance = theme?.theme || "light";
-  console.log("theme : ", theme.theme);
 
   useEffect(() => {
     authService

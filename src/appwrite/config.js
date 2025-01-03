@@ -196,10 +196,8 @@ export class Service {
   async updateUserMetaData({ userId, bio, profileImage, userName }) {
     const findAuthor = await this.getAuthorMetaData(userId);
 
-    console.log("find author : ", findAuthor);
     try {
       if (!findAuthor.documents[0]) {
-        console.log("inside else !!");
         return await this.databases.createDocument(
           conf.databaseId,
           conf.collectionIdUser,
@@ -212,7 +210,6 @@ export class Service {
           }
         );
       } else {
-        console.log("inside if XD  del file here:: ", findAuthor);
         return await this.databases.updateDocument(
           conf.databaseId,
           conf.collectionIdUser,

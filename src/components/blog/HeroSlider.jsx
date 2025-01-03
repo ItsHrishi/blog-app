@@ -16,7 +16,7 @@ const HeroSlider = () => {
   useEffect(() => {
     appwriteService.getSlidePosts().then((data) => {
       if (data) {
-        console.log("list data ", data.documents);
+        // console.log("list data ", data.documents);
         setIdList(data.documents);
       }
     });
@@ -55,7 +55,7 @@ const HeroSlider = () => {
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {idList?.map((item) => (
-          <div key={item.id} className="w-full h-full flex-shrink-0">
+          <div key={item.$id} className="w-full h-full flex-shrink-0">
             <HeroSliderCard postId={item?.articleId} />
           </div>
         ))}

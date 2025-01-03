@@ -21,7 +21,6 @@ export class AuthService {
         name
       );
       if (user) {
-        console.log("user", user);
         const addUserInDB = await this.databases.createDocument(
           conf.databaseId,
           conf.collectionIdUser,
@@ -31,7 +30,6 @@ export class AuthService {
             userName: user.name,
           }
         );
-        console.log("addUserInDB ", addUserInDB);
         return this.login({ email, password });
       } else {
         return user;

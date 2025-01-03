@@ -60,7 +60,6 @@ const PostForm = ({ postId }) => {
       const fetchDetails = async () => {
         const postData = await appwriteService.getPost(postId);
         setOldPostData(postData);
-        console.log("post Data : ", postData);
         setValue("title", postData.title);
         setValue("content", postData.content);
         setValue("category", postData?.category);
@@ -70,11 +69,6 @@ const PostForm = ({ postId }) => {
             appwriteService.getArticleImagePreview(postData?.featuredImage)
           );
         }
-        console.log(
-          "values after modify: ",
-          postData?.status,
-          getValues("isActive")
-        );
       };
 
       fetchDetails();
@@ -92,16 +86,9 @@ const PostForm = ({ postId }) => {
     }
   };
 
-  console.log("post id : ", postId);
-
   const onSubmit = async (data) => {
-    console.log(data);
-
     if (postId) {
       setLoading(true);
-      console.log("submit button : ");
-      console.log("preview image :", previewImage);
-      console.log("data", data);
 
       let featuredImageId = null;
 
@@ -111,12 +98,10 @@ const PostForm = ({ postId }) => {
           data.image[0]
         );
         if (newFile) {
-          console.log("if", data);
           featuredImageId = newFile.$id;
         } else {
           console.error("Error uploading feature image");
         }
-        console.log(newFile, featuredImageId);
       }
       const readTime = Math.max(1, Math.round(wordCount / 150));
       const updateData = {};
@@ -129,7 +114,6 @@ const PostForm = ({ postId }) => {
         updateData.category = data.category;
       if (featuredImageId) updateData.featuredImage = featuredImageId;
       if (oldPostData.readTime !== readTime) updateData.readTime = readTime;
-      console.log("updateData : ", updateData);
 
       const dbPost = appwriteService.updatePost(oldPostData.$id, updateData);
 
@@ -154,7 +138,6 @@ const PostForm = ({ postId }) => {
       if (previewImage) {
         const file = await appwriteService.uploadFeatureImage(data.image[0]);
         if (file) {
-          console.log("if", data);
           featuredImageId = file.$id;
         } else {
           console.error("Error uploading feature image");

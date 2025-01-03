@@ -49,8 +49,8 @@ const HeroSliderCard = ({ postId }) => {
     fetchData();
   }, []);
 
-  console.log("authorData ", authorData);
-  console.log("postData ", postData);
+  // console.log("authorData ", authorData);
+  // console.log("postData ", postData);
   // const description = postData.content.replace(/<[^>]*>/g, "");
 
   if (loading) return <HeroSliderCardLoading />;

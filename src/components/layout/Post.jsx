@@ -63,7 +63,7 @@ const Post = () => {
           postData.userId
         );
         setAuthorMetaData(writerMetaData.documents[0]);
-        console.log("writer meta data : ", writerMetaData);
+        // console.log("writer meta data : ", writerMetaData);
 
         setLoading(false);
       } catch (error) {
@@ -110,8 +110,8 @@ const Post = () => {
     }
   };
 
-  console.log("checking post : ", post);
-  console.log("checking authorMetaData : ", authorMetaData);
+  // console.log("checking post : ", post);
+  // console.log("checking authorMetaData : ", authorMetaData);
 
   if (loading) return <FullPageLoading />;
   else
@@ -273,7 +273,7 @@ const Post = () => {
                     className="mr-4"
                   />
                   <Flex direction="column" gap="2">
-                    <Text weight="medium">{authorMetaData?.name}</Text>
+                    <Text weight="medium">{authorMetaData?.userName}</Text>
                     <Text size="2" color="gray">
                       {authorMetaData?.bio}
                     </Text>

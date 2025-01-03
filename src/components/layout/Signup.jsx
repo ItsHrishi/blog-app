@@ -20,7 +20,6 @@ const SignupPage = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    console.log(data);
     try {
       setLoading(true);
       const user = await authService.registerUser({
@@ -28,7 +27,6 @@ const SignupPage = () => {
         password: data.password,
         name: data.name,
       });
-      console.log(user);
       if (user) {
         const userData = await authService.getCurrentUser();
         if (userData) dispatch(login(userData));
