@@ -257,31 +257,34 @@ const Post = () => {
             {/* {console.log(post?.content)} */}
           </div>
 
-          {/* Article Footer */}
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <Flex direction="column" gap="4">
-              {/* Author Bio */}
-              <Card className="mb-4">
-                <Flex>
-                  <Avatar
-                    size="4"
-                    src={images.profileImage}
-                    fallback={
-                      authorMetaData ? authorMetaData?.userName[0] : "h"
-                    }
-                    radius="full"
-                    className="mr-4"
-                  />
-                  <Flex direction="column" gap="2">
-                    <Text weight="medium">{authorMetaData?.userName}</Text>
-                    <Text size="2" color="gray">
-                      {authorMetaData?.bio}
-                    </Text>
+          {authorMetaData?.bio ? (
+            <div className="mt-12 pt-8 border-t border-gray-200">
+              <Flex direction="column" gap="4">
+                {/* Author Bio */}
+                <Card className="mb-4">
+                  <Flex>
+                    <Avatar
+                      size="4"
+                      src={images.profileImage}
+                      fallback={
+                        authorMetaData ? authorMetaData?.userName[0] : "h"
+                      }
+                      radius="full"
+                      className="mr-4"
+                    />
+                    <Flex direction="column" gap="2">
+                      <Text weight="medium">{authorMetaData?.userName}</Text>
+                      <Text size="2" color="gray">
+                        {authorMetaData?.bio}
+                      </Text>
+                    </Flex>
                   </Flex>
-                </Flex>
-              </Card>
-            </Flex>
-          </div>
+                </Card>
+              </Flex>
+            </div>
+          ) : (
+            <div className="mt-12 pt-8 border-t border-gray-200"></div>
+          )}
         </Container>
       </article>
     );

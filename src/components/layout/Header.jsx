@@ -6,30 +6,46 @@ import {
   Container,
   TextField,
   Dialog,
+  DropdownMenu,
+  Avatar,
 } from "@radix-ui/themes";
 import {
   SunIcon,
   MoonIcon,
   HamburgerMenuIcon,
   MagnifyingGlassIcon,
+  DropdownMenuIcon,
 } from "@radix-ui/react-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./layoutStyles.css";
-import { useSelector } from "react-redux";
-import LogoutButton from "../common/LogoutButton";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../store/features/authSlice";
+import appwriteService from "../../appwrite/config";
 
 const Header = ({ handleThemeChange, theme }) => {
+  const [userMetaData, setUserMetaData] = useState(null);
   const authStatus = useSelector((state) => state.auth.status);
   const userData = useSelector((state) => state.auth.userData);
-  const navigate = useNavigate();
+
+  const fetchData = async () => {
+    const data = await appwriteService.getAuthorMetaData(userData.$id);
+    setUserMetaData(data?.documents[0]);
+  };
+
+  useEffect(() => {
+    if (userData) {
+      fetchData();
+    }
+  }, []);
+  console.log("userMetaData : ", userMetaData);
 
   return (
     <Container
       className="w-full sticky top-0 z-20 drop-shadow-md"
       p="4"
       style={{
-        backgroundColor: "var(--color-background)", // Use Radix UI theme variable
+        backgroundColor: "var(--color-background)",
       }}
     >
       <Flex direction="row" align="center" justify="between">
@@ -53,7 +69,7 @@ const Header = ({ handleThemeChange, theme }) => {
         </div>
 
         {/* action */}
-        <Flex gap="2">
+        <Flex gap="3">
           <IconButton
             highContrast
             onClick={handleThemeChange}
@@ -100,35 +116,67 @@ const Header = ({ handleThemeChange, theme }) => {
             </>
           )}
           {authStatus && (
-            <>
-              <LogoutButton>Logout</LogoutButton>
-              <Link to="/add-post">
-                <Button
-                  size={{
-                    initial: "2",
-                    md: "3",
-                  }}
-                  style={{ cursor: "pointer" }}
-                >
-                  Write
-                </Button>
-              </Link>
-              <Link to={`/profile/${userData.$id}`}>
-                <Button
-                  size={{
-                    initial: "2",
-                    md: "3",
-                  }}
-                  style={{ cursor: "pointer" }}
-                >
-                  Profile
-                </Button>
-              </Link>
-            </>
+            <DropdownMenuComponent
+              userMetaData={userMetaData}
+              userData={userData}
+            />
           )}
         </Flex>
       </Flex>
     </Container>
   );
 };
+
+const DropdownMenuComponent = ({ userData, userMetaData }) => {
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    authService.logout().then(() => {
+      dispatch(logout());
+    });
+  };
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger>
+        <button
+          type="button"
+          className="focus:outline-none focus:ring-2 rounded-full"
+          style={{
+            "--tw-ring-color": "var(--accent-7)",
+          }}
+          aria-label="User menu"
+        >
+          <Avatar
+            size={{
+              initial: "2",
+              md: "3",
+            }}
+            src={
+              userMetaData?.profileImage
+                ? appwriteService.getProfileImagePreview(
+                    userMetaData.profileImage
+                  )
+                : null
+            }
+            fallback={userData?.name ? userData?.name[0] : "h"}
+            radius="full"
+            className="cursor-pointer"
+          />
+        </button>
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Content>
+        <Link to={`/profile/${userData.$id}`}>
+          <DropdownMenu.Item>Profile</DropdownMenu.Item>
+        </Link>
+        <DropdownMenu.Item>My Posts</DropdownMenu.Item>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item color="red" onClick={handleLogout}>
+          Logout
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  );
+};
+
 export default Header;

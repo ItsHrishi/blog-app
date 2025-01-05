@@ -259,14 +259,35 @@ const PostForm = ({ postId }) => {
               <input
                 type="file"
                 id="image"
-                accept="image/png, image/jpg, image/jpeg, image/gif"
+                accept="image/png, image/jpg, image/jpeg, image/webp, image/heic, image/heif,"
                 className="w-full p-2 border rounded-md "
                 style={{ outlineColor: "var(--accent-7)" }}
-                {...register("image")}
+                {...register("image", {
+                  required: "Image is required.",
+                  validate: {
+                    checkFileType: (value) =>
+                      value[0] &&
+                      [
+                        "image/png",
+                        "image/jpg",
+                        "image/jpeg",
+                        "image/webp",
+                        "image/heic",
+                        "image/heif",
+                      ].includes(value[0].type)
+                        ? true
+                        : "Unsupported file format. Supported image format : .png, jpg, .jpeg, .webp, .heic, .heif",
+                    checkFileSize: (value) =>
+                      value[0] && value[0].size <= 5 * 1024 * 1024 // 5 MB limit
+                        ? true
+                        : "File size exceeds 5 MB.",
+                  },
+                })}
                 onChange={handleImageChange}
               />
               <Text size="1" color="gray">
-                (Please upload the image in 16:9 aspect ratio)
+                (Please upload the image in 16:9 aspect ratio. File size should
+                be less than 5mb.)
               </Text>
               {previewImage && (
                 <div className="mt-2">

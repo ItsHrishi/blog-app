@@ -15,6 +15,7 @@ import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import FullPageLoading from "../common/FullPageLoading";
 import ErrorPage from "../common/ErrorPage";
+import ImageUploadCropper from "../common/InputImageCropper";
 
 const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -96,7 +97,7 @@ const UserProfile = () => {
           }
         }
 
-        const updateUserMetaData = await appwriteService.updateUserMetaData({
+        await appwriteService.updateUserMetaData({
           userId: currentUserData.$id,
           bio: tempData.bio,
           profileImage: profileImageId,
@@ -135,6 +136,20 @@ const UserProfile = () => {
     const { value } = e.target;
     setTempData((prev) => ({ ...prev, name: value }));
     validateName(value);
+  };
+
+  const handleCroppedImage = (croppedImageBlob) => {
+    setTempData((prev) => ({
+      ...prev,
+      profilePhoto: croppedImageBlob,
+    }));
+    if (croppedImageBlob) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDisplayNewProfile(reader.result);
+      };
+      reader.readAsDataURL(croppedImageBlob);
+    }
   };
 
   return fullPageLoading ? (
@@ -192,8 +207,9 @@ const UserProfile = () => {
               <Flex
                 direction="column"
                 align="center"
+                justify="center"
                 gap="4"
-                className="w-full"
+                className="w-full items-center"
               >
                 <Avatar
                   size="8"
@@ -205,29 +221,13 @@ const UserProfile = () => {
                 />
 
                 {isEditing && (
-                  <label className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg cursor-pointer transition-colors duration-200 font-medium text-sm">
-                    <span className="mr-2">📷</span>
-                    Change Profile Photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        setTempData((prev) => ({
-                          ...prev,
-                          profilePhoto: e.target.files?.[0],
-                        }));
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setDisplayNewProfile(reader.result);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="hidden"
+                  <>
+                    <ImageUploadCropper
+                      onImageCropped={handleCroppedImage}
+                      aspectRatio={1}
+                      className="w-full items-center"
                     />
-                  </label>
+                  </>
                 )}
 
                 {isEditing && displayNewProfile && (
