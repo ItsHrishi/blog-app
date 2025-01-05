@@ -17,16 +17,25 @@ import {
   DropdownMenuIcon,
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "./layoutStyles.css";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/features/authSlice";
 import appwriteService from "../../appwrite/config";
+import authService from "../../appwrite/auth";
 
 const Header = ({ handleThemeChange, theme }) => {
   const [userMetaData, setUserMetaData] = useState(null);
   const authStatus = useSelector((state) => state.auth.status);
   const userData = useSelector((state) => state.auth.userData);
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    console.log("Logout");
+    authService.logout().then(() => {
+      dispatch(logout());
+    });
+  };
 
   const fetchData = async () => {
     const data = await appwriteService.getAuthorMetaData(userData.$id);
@@ -119,6 +128,7 @@ const Header = ({ handleThemeChange, theme }) => {
             <DropdownMenuComponent
               userMetaData={userMetaData}
               userData={userData}
+              handleLogout={handleLogout}
             />
           )}
         </Flex>
@@ -127,14 +137,7 @@ const Header = ({ handleThemeChange, theme }) => {
   );
 };
 
-const DropdownMenuComponent = ({ userData, userMetaData }) => {
-  const dispatch = useDispatch();
-
-  const handleLogout = () => {
-    authService.logout().then(() => {
-      dispatch(logout());
-    });
-  };
+const DropdownMenuComponent = ({ userData, userMetaData, handleLogout }) => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
