@@ -58,36 +58,33 @@ const Footer = () => {
 
           {/* Social Media Icons */}
           <Flex direction="row" align="center" gap="4" className="mt-4 sm:mt-0">
-            <IconButton
-              variant="classic"
-              highContrast
-              as="a"
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
               href="https://github.com/ItsHrishi"
+            >
+              <IconButton variant="classic" highContrast>
+                <GitHubLogoIcon className="w-5 h-5" />
+              </IconButton>
+            </a>
+            <a
               target="_blank"
               rel="noopener noreferrer"
-            >
-              <GitHubLogoIcon className="w-5 h-5" />
-            </IconButton>
-            <IconButton
-              variant="classic"
-              highContrast
-              as="a"
               href="https://x.com/ItsHrishikeshSG"
+            >
+              <IconButton variant="classic" highContrast>
+                <TwitterLogoIcon className="w-5 h-5" />
+              </IconButton>
+            </a>
+            <a
               target="_blank"
               rel="noopener noreferrer"
-            >
-              <TwitterLogoIcon className="w-5 h-5" />
-            </IconButton>
-            <IconButton
-              variant="classic"
-              highContrast
-              as="a"
               href="mailto:ghrishikesh77@gmail.com"
-              target="_blank"
-              rel="noopener noreferrer"
             >
-              <EnvelopeClosedIcon className="w-5 h-5" />
-            </IconButton>
+              <IconButton variant="classic" highContrast>
+                <EnvelopeClosedIcon className="w-5 h-5" />
+              </IconButton>
+            </a>
           </Flex>
         </Flex>
         {/* Copyright Info */}
