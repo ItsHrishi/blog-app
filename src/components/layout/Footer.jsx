@@ -17,7 +17,17 @@ const Footer = () => {
           className="py-6 space-y-4 sm:space-y-0"
         >
           {/* Footer Logo or Title */}
-          <Text className="text-lg font-medium text-white">Blog Post</Text>
+          {/* <Text className="text-lg font-medium text-white">Blog Post</Text> */}
+          <img
+            src="../../../asset/logo/logo-dark.png"
+            alt="Blog App Logo"
+            className="logo-image rounded-lg"
+            style={{
+              height: "40px",
+              width: "auto",
+              objectFit: "contain",
+            }}
+          />
 
           {/* Navigation Links */}
           <Flex
@@ -52,7 +62,7 @@ const Footer = () => {
               variant="classic"
               highContrast
               as="a"
-              href="https://github.com"
+              href="https://github.com/ItsHrishi"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -62,7 +72,7 @@ const Footer = () => {
               variant="classic"
               highContrast
               as="a"
-              href="https://twitter.com"
+              href="https://x.com/ItsHrishikeshSG"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -72,7 +82,7 @@ const Footer = () => {
               variant="classic"
               highContrast
               as="a"
-              href="mailto:example@gmail.com"
+              href="mailto:ghrishikesh77@gmail.com"
               target="_blank"
               rel="noopener noreferrer"
             >

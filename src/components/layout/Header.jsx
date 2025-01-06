@@ -8,13 +8,13 @@ import {
   Dialog,
   DropdownMenu,
   Avatar,
+  Box,
 } from "@radix-ui/themes";
 import {
   SunIcon,
   MoonIcon,
-  HamburgerMenuIcon,
   MagnifyingGlassIcon,
-  DropdownMenuIcon,
+  Pencil2Icon,
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -59,10 +59,23 @@ const Header = ({ handleThemeChange, theme }) => {
     >
       <Flex direction="row" align="center" justify="between">
         {/* logo */}
-        <Link to="/">
-          <Text>Blog Spot</Text>
-        </Link>
-
+        {theme?.theme === "light" ? (
+          <Link to="/">
+            <img
+              src="../../../asset/logo/logo-light.png"
+              alt="Blog App Logo"
+              className="logo-image object-contain h-7 sm:h-10"
+            />
+          </Link>
+        ) : (
+          <Link to="/">
+            <img
+              src="../../../asset/logo/logo-dark.png"
+              alt="Blog App Logo"
+              className="logo-image object-contain h-7 sm:h-10"
+            />
+          </Link>
+        )}
         {/* search */}
         <div className="hidden-search">
           <TextField.Root
@@ -76,19 +89,18 @@ const Header = ({ handleThemeChange, theme }) => {
             </TextField.Slot>
           </TextField.Root>
         </div>
-
         {/* action */}
         <Flex gap="3">
           <IconButton
-            highContrast
             onClick={handleThemeChange}
-            variant="soft"
             radius="full"
             size={{
               initial: "2",
               md: "3",
             }}
             style={{ cursor: "pointer" }}
+            highContrast
+            variant="outline"
           >
             {theme === "light" ? <MoonIcon /> : <SunIcon />}
           </IconButton>
@@ -125,11 +137,29 @@ const Header = ({ handleThemeChange, theme }) => {
             </>
           )}
           {authStatus && (
-            <DropdownMenuComponent
-              userMetaData={userMetaData}
-              userData={userData}
-              handleLogout={handleLogout}
-            />
+            <>
+              <Link to="/add-post">
+                <Button
+                  size={{
+                    initial: "2",
+                    md: "3",
+                  }}
+                  style={{ cursor: "pointer" }}
+                  highContrast
+                  variant="outline"
+                >
+                  <Pencil2Icon />
+                  <Box display={{ initial: "none", sm: "block" }} ml="1">
+                    Write
+                  </Box>
+                </Button>
+              </Link>
+              <DropdownMenuComponent
+                userMetaData={userMetaData}
+                userData={userData}
+                handleLogout={handleLogout}
+              />
+            </>
           )}
         </Flex>
       </Flex>
