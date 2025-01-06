@@ -77,7 +77,7 @@ const Header = ({ handleThemeChange, theme }) => {
           </Link>
         )}
         {/* search */}
-        <div className="hidden-search">
+        {/* <div className="hidden-search">
           <TextField.Root
             size="3"
             variant="soft"
@@ -88,7 +88,7 @@ const Header = ({ handleThemeChange, theme }) => {
               <MagnifyingGlassIcon height="16" width="16" />
             </TextField.Slot>
           </TextField.Root>
-        </div>
+        </div> */}
         {/* action */}
         <Flex gap="3">
           <IconButton
