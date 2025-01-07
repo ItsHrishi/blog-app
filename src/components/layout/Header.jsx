@@ -62,7 +62,7 @@ const Header = ({ handleThemeChange, theme }) => {
         {theme?.theme === "light" ? (
           <Link to="/">
             <img
-              src="../../../asset/logo/logo-light.png"
+              src="/asset/logo/logo-light.png"
               alt="Blog App Logo"
               className="logo-image object-contain h-7 sm:h-10"
             />
@@ -70,7 +70,7 @@ const Header = ({ handleThemeChange, theme }) => {
         ) : (
           <Link to="/">
             <img
-              src="../../../asset/logo/logo-dark.png"
+              src="/asset/logo/logo-dark.png"
               alt="Blog App Logo"
               className="logo-image object-contain h-7 sm:h-10"
             />

@@ -19,7 +19,7 @@ const Footer = () => {
           {/* Footer Logo or Title */}
           {/* <Text className="text-lg font-medium text-white">Blog Post</Text> */}
           <img
-            src="../../../asset/logo/logo-dark.png"
+            src="/asset/logo/logo-dark.png"
             alt="Blog App Logo"
             className="logo-image rounded-lg"
             style={{
